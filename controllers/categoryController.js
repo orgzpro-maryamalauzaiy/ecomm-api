@@ -1,0 +1,143 @@
+const pool = require("../apis/config/postgres.js");
+
+const createCategory = async (req, res, next) => {
+  try {
+    console.log('req.body', req.body)
+    const {
+      // image,
+      name
+      // description,
+      // price,
+      // original_price,
+      // discount,
+      // bg_color,
+      // panel_color,
+      // text_color,
+      // stock,
+      // category,
+      // sku,
+      // colors,
+    } = req.body;
+    // const { image } = req.body
+
+
+    //   invoice_number varchar(200),
+    // total_price int8,
+    // total_amount int8,
+    // admin_fee int8,
+    // total_discount int8,
+    // promo_code varchar(100),
+
+    const results = await pool.query(
+      `INSERT INTO categories (name)
+                            VALUES ( $1 )
+      `,
+      [
+        name
+      ],
+    );
+
+    console.log(results);
+
+    res
+      .status(200)
+      .json({
+        error: false,
+        message: "Successfully insert category",
+        data: results[0],
+      });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCategories = async (req, res, next) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM categories WHERE deleted_at is null`,
+    );
+
+    console.log(rows);
+    res
+      .status(200)
+      .json({
+        error: false,
+        message: "Successfully get categories",
+        data: rows,
+      });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getCategoryById = async (req, res, next) => {
+  try {
+    const { id } = req.query;
+
+    const { rows } = await pool.query(
+      `SELECT * FROM categories WHERE deleted_at is null AND id = $1`,
+      [id],
+    );
+
+    console.log(rows);
+    res
+      .status(200)
+      .json({ error: false, message: "Successfully get order", data: rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateProduct = async (req, res, next) => {
+  try {
+    const {
+      name
+    } = req.body;
+    // const { image } = req.body
+
+    const results = await pool.query(
+      `UPDATE products SET (name)
+                            VALUES ( $1 )
+      `,
+      [
+        name,
+      ],
+    );
+
+    console.log(results);
+
+    res
+      .status(200)
+      .json({
+        error: false,
+        message: "Successfully insert product",
+        data: results[0],
+      });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteCategory = async (req, res, next) => {
+  try {
+    const { id } = req.query;
+    // const { image, name, description, price, original_price, discount, bg_color, panel_color, text_color, stock, category, sku, colors } = req.body
+    // const { image } = req.body
+
+    const results = await pool.query(
+      `DELETE categories WHERE id = $1
+      `,
+      [id],
+    );
+
+    console.log(results);
+
+    res
+      .status(200)
+      .json({ error: false, message: "Successfully delete category" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { createCategory, getCategories, updateProduct, deleteCategory };
