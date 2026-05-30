@@ -493,7 +493,8 @@ app.use((err, req, res, next) => {
     return res.status(500).json({error: errStatus, message: errMessage, errorStack : err.stack})
 })
 
+const PORT = process.env.PORT || 3030
 
-app.listen('3030', () => {
-    console.log('server running on port 3030')
+app.listen(PORT, () => {
+    console.log(`server running on port ${PORT}`)
 })
