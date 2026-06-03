@@ -20,7 +20,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
   ssl: {
     rejectUnauthorized: true,
-    ca: fs.readFileSync('../ca-cert-postgres-database/ca.pem').toString()
+    ca: fs.readFileSync('./ca-cert-postgres-database/ca.pem').toString()
   }
 })
 
