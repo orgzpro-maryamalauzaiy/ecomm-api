@@ -37,20 +37,33 @@ const historyOrderById = async (req, res) => {
 
     const uni = req.user.uni
 
-    console.log('uni', req)
+    console.log('uni', req.user.uni)
 
-    const users = await pool.query(`SELECT id FROM orders WHERE uni = $1 AND deleted_at is null`, [uni])
+    const users = await pool.query(`SELECT id FROM users WHERE uni = $1 AND deleted_at is null`, [uni])
 
     console.log('users>', users.rows)
 
-    const histories = await pool.query(`SELECT * FROM orders WHERE created_by = $1 AND id` , [users.rows[0].id, id])
+    const {rows} = await pool.query(`SELECT * FROM orders WHERE created_by = $1 AND invoice_number = $2 AND deleted_at is null` , [users.rows[0].id, id])
 
+    console.log('history', rows)
 
-    if(!histories){
+    if(!rows){
       return res.status(400).json({error: true, message: 'History empty'})
     }
 
-    res.status(200).json({error: false, message: 'Successfully get history orders', data: histories.rows[0]})
+    const products = await pool.query(`SELECT od.product_id, od.price, od.discount, od.amount, od.promo_code, od.admin_fee, p.name, p.image, p.slug FROM order_details od JOIN products p ON p.id = od.product_id WHERE od.order_id = $1 AND od.deleted_at is null`, [rows[0].id])
+
+    console.log('products', products)
+
+    const payment = await pool.query(`SELECT op.payment_code, op.payment_status, op.bank_code, op.settlement_date FROM order_payments op WHERE op.order_id = $1 AND op.deleted_at is null`, [rows[0].id])
+
+    const history = {
+      ...rows[0],
+      items: products.rows,
+      payments: payment.rows
+    }
+
+    res.status(200).json({error: false, message: 'Successfully get history orders', data: history})
 
   } catch (error) {
     return res.status(400).json({error: true, message: 'Error get history orders: ' + error })

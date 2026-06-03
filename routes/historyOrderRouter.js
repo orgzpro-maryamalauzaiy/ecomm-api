@@ -5,7 +5,7 @@ const { verifyUser } = require('../utils/verifyToken')
 const router = express.Router()
 
 router.get('/', verifyUser, historyOrder)
-router.get('/:in', verifyUser, historyOrderById)
+router.get('/:id', verifyUser, historyOrderById)
 // verifyUser,
 
 module.exports = router

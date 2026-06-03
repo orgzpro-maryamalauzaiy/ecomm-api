@@ -27,6 +27,7 @@ const orderReportsRouter = require('./routes/orderReportRouter.js')
 const customersRouter = require('./routes/customersRouter.js')
 const searchRouter = require('./routes/customersRouter.js')
 const citiesRouter = require('./routes/citiesRouter.js')
+const couponsRouter = require('./routes/couponsRouter.js')
 
 const db = require('./config/mongoose-connection')
 const { getProfile, updateProfile } = require('./controllers/customersController.js')
@@ -39,7 +40,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://cee6-157-10-184-115.ngrok-free.app', 'http://localhost:5173', 'https://eshop-vini-sweethome.vercel.app', 'https://ecomm-api-eight.vercel.app'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173/', 'https://7228-157-10-184-115.ngrok-free.app', 'http://localhost:5173', 'https://eshop-vini-sweethome.vercel.app', 'https://ecomm-api-eight.vercel.app'],
   credentials: true
 }))
 app.use(expressSession({
@@ -473,6 +474,7 @@ app.use('/histories', historyOrdersRouter)
 app.use('/admin/auth', authRouter)
 app.use('/count', countsRouter)
 app.use('/orders', ordersRouter)
+app.use('/coupons', couponsRouter)
 
 
 app.use('/customers', customersRouter)
@@ -483,8 +485,8 @@ app.use('/cities', citiesRouter)
 
 // app.use('/histories', historyOrdersRouter)
 
-app.get('/profile', verifyToken, getProfile)
-app.patch('/profile', verifyToken, updateProfile)
+app.get('/accounts/profile', verifyToken, getProfile)
+app.patch('/accouts/profile', verifyToken, updateProfile)
 
 app.use((err, req, res, next) => {
     const errStatus = err.status || 500

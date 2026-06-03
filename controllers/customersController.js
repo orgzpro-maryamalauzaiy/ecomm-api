@@ -62,7 +62,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res, next) => {
 
   try {
-    const { full_name, email, phone_number, password, address, province_id, city_id, country, zip, avatar } = req.body;
+    const { full_name, email, phone_number, password, address, province, city_id, country, zip, avatar } = req.body;
 
     const {uni} = req.user;
 
@@ -79,7 +79,7 @@ const updateProfile = async (req, res, next) => {
     if (email) {
       const { rows } = await pool.query(
         "SELECT email FROM users WHERE uni = $1",
-        [uni],
+        [uni]
       );
 
       if (!rows) {
@@ -124,17 +124,17 @@ const updateProfile = async (req, res, next) => {
         query = `${query}${columns[i]} = $${params.length + 1},`
         params.push(req.body[columns[i]]);
       }
-      query = `, ${query}updated_at = $${params.length + 1}`
-      params.push(new Date().toDateString())
+      // query = `, ${query}updated_at = $${params.length + 1}`
+      // params.push(new Date().toDateString())
       query = `${query.substring(0, query.length-1)} WHERE id = $1`
       console.log(query);
       console.log(fields)
 
 
-        if(full_name || email || phone_number || address || province_id || city_id || country || zip || avatar){
+        if(full_name || email || phone_number || address || province || city_id || country || zip || avatar){
 
           console.log('query', query)
-          console.log('fields', fields)
+          console.log('params', params)
 
           const customer = await pool.query(query, params)
 

@@ -195,6 +195,7 @@ const createInvoiceMid = async (req, res) => {
                     .then(async result => {
                         console.log('result', result)
                         if(result.status == 201){
+
                             const user_cart = await Cart.findOne({uni})
 
                             if(user_cart){
@@ -254,7 +255,7 @@ const createInvoiceMid = async (req, res) => {
 const callbackMid = async (req, res) => {
 
     try {
-        const {order_id, gross_amount } = req.body
+        const {order_id, gross_amount, bank, status_code, transaction_status, transaction_date, payment_type } = req.body
 
         console.log(req.body)
 
@@ -270,13 +271,19 @@ const callbackMid = async (req, res) => {
 
                 if(!rows) return res.status(400).json({error: true, message: 'Error when update order: ' + error})
 
-                const payments = await pool.query('UPDATE order_payments SET payment_status = $1 WHERE order_id = $2', ['successed', order_id])
+                const payments = await pool.query('INSERT INTO order_payments (payment_code, payment_status, status_code, settlement_date, order_id) VALUES ($1, $2, $3, $4, $5)', [payment_type, transaction_status, status_code, transaction_date, order_id])
 
                 if(!payments) return res.status(400).json({error: true, message: 'Error when update payment'})
 
+                if(bank){
+                    const {rows} = await pool.query(`INSERT INTO order_payments (bank_code, updated_at) VALUES ($1, $2)`, [bank, new Date().toDateString()])
 
-                res.status(200).json({error: true, message: 'Successfully save callback'})
+                    if(rows){
+                        return res.status(200).json({error: false, message: 'Successfully save callback'})
+                    }
+                }
 
+                res.status(200).json({error: false, message: 'Successfully save callback'})
 
 
             } catch (error) {

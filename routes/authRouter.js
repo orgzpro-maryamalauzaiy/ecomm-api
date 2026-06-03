@@ -1,5 +1,5 @@
 const express = require('express')
-const {registUser, loginUser, logoutUser, resetPassword, getSession} = require('../controllers/authController.js')
+const {registUser, loginUser, logoutUser, resetPassword, getSession, changePassword} = require('../controllers/authController.js')
 const { route } = require('./ownersRouter.js')
 const { verifyToken, verifyUser } = require('../utils/verifyToken.js')
 
@@ -9,7 +9,8 @@ router.post('/register', registUser)
 router.get('/session', verifyToken, getSession)
 router.post('/login', loginUser)
 router.post('/logout', logoutUser)
-router.patch('/reset-password', verifyToken, resetPassword)
+router.patch('/change-password', verifyToken, changePassword)
+router.post('/reset-password', resetPassword)
 
 module.exports = router
 

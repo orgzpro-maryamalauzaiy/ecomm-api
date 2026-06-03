@@ -160,7 +160,7 @@ const logoutUser = async (req, res) => {
 
 }
 
-const resetPassword = async (req, res) => {
+const changePassword = async (req, res) => {
     try {
 
         const { password } = req.body
@@ -182,4 +182,30 @@ const resetPassword = async (req, res) => {
     }
 }
 
-module.exports = {registUser, getSession, loginUser, logoutUser, resetPassword}
+const resetPassword = async (req, res) => {
+    try {
+
+        const {username, password} = req.body
+
+        const user = await pool.query('SELECT * FROM users WHERE email = $1', [username])
+
+        if(!user){
+            return res.status(400).json({error: true, message: "User not found"})
+        }
+
+        const salt = await getSalt(10)
+        
+        const hash_password = await bcrypt.hash(password, salt)
+
+        const {rows} = await pool.query(`UPDATE users SET password = $1, updated_at = $2 WHERE username = $3`, (hash_password, new Date().toDateString()))
+
+        if(rows){
+            res.status(200).json({error: false, message: 'Successfully reset password'})
+        }
+
+    } catch (error) {
+
+    }
+}
+
+module.exports = {registUser, getSession, loginUser, logoutUser, resetPassword, changePassword}
