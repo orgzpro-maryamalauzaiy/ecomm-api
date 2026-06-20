@@ -34,6 +34,7 @@ const db = require('./config/mongoose-connection')
 const { getProfile, updateProfile } = require('./controllers/customersController.js')
 const { verifyToken } = require('./utils/verifyToken.js')
 
+const allowedOrigin = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5175', 'https://7228-157-10-184-115.ngrok-free.app', 'http://localhost:5173', 'https://eshop-vini-sweethome.vercel.app', 'https://github.com/orgzpro-maryamalauzaiy/ecomm-api/blob/main/ca-cert-postgres-database/cert.pem']
 // app.use(cors({
 //   credentials: true
 // }))
@@ -41,7 +42,23 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5175', 'https://7228-157-10-184-115.ngrok-free.app', 'http://localhost:5173', 'https://eshop-vini-sweethome.vercel.app', 'https://github.com/orgzpro-maryamalauzaiy/ecomm-api/blob/main/ca-cert-postgres-database/cert.pem'],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Check against allowed patterns
+    const allowedPatterns = allowedOrigin;
+
+    const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   // Allow these HTTP methods
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   // Allow these headers in requests
