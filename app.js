@@ -23,8 +23,9 @@ const categoriesRouter = require('./routes/categoriesRouter.js')
 const countsRouter = require('./routes/countsRouter.js')
 const ordersRouter = require('./routes/ordersRouter.js')
 const historyOrdersRouter = require('./routes/historyOrderRouter.js')
-const orderReportsRouter = require('./routes/orderReportRouter.js')
 const customersRouter = require('./routes/customersRouter.js')
+const balanceRouter = require('./routes/balanceRouter.js')
+const orderReportsRouter = require('./routes/orderReportRouter.js')
 const searchRouter = require('./routes/customersRouter.js')
 const citiesRouter = require('./routes/citiesRouter.js')
 const couponsRouter = require('./routes/couponsRouter.js')
@@ -40,7 +41,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'https://7228-157-10-184-115.ngrok-free.app', 'http://localhost:5173', 'https://eshop-vini-sweethome.vercel.app', 'https://github.com/orgzpro-maryamalauzaiy/ecomm-api/blob/main/ca-cert-postgres-database/cert.pem'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5175', 'https://7228-157-10-184-115.ngrok-free.app', 'http://localhost:5173', 'https://eshop-vini-sweethome.vercel.app', 'https://github.com/orgzpro-maryamalauzaiy/ecomm-api/blob/main/ca-cert-postgres-database/cert.pem'],
   credentials: true
 }))
 app.use(expressSession({
@@ -480,6 +481,7 @@ app.use('/coupons', couponsRouter)
 app.use('/customers', customersRouter)
 app.use('/categories', categoriesRouter)
 app.use('/order-reports', orderReportsRouter)
+app.use('/balance', balanceRouter)
 app.use('/search', searchRouter)
 app.use('/cities', citiesRouter)
 

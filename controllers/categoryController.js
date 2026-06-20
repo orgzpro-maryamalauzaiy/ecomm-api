@@ -44,7 +44,7 @@ const createCategory = async (req, res, next) => {
       .json({
         error: false,
         message: "Successfully insert category",
-        data: results[0],
+        data: results.rows[0],
       });
   } catch (error) {
     next(error);
@@ -54,7 +54,7 @@ const createCategory = async (req, res, next) => {
 const getCategories = async (req, res, next) => {
   try {
     const { rows } = await pool.query(
-      `SELECT c1.id, c1.name, c1.parent_id, c2.name as parent_category_name FROM categories c1 INNER JOIN categories c2 on c1.parent_id = c2.id WHERE c1.deleted_at is null`,
+      `SELECT c1.id, c1.name, c1.parent_id, c2.name as parent_category_name FROM categories c1 LEFT JOIN categories c2 on c1.parent_id = c2.id WHERE c1.deleted_at is null`,
     );
 
     console.log(rows);
@@ -81,7 +81,7 @@ const getCategoryById = async (req, res, next) => {
 
     const { rows } = await pool.query(
       `SELECT * FROM categories WHERE deleted_at is null AND id = $1`,
-      [id],
+      [id]
     );
 
     console.log('rows', rows, id)
@@ -130,9 +130,9 @@ const deleteCategory = async (req, res, next) => {
     // const { image } = req.body
 
     const results = await pool.query(
-      `UPDATE categories SET deleted_at = null WHERE id = $1
+      `UPDATE categories SET deleted_at = $2 WHERE id = $1
       `,
-      [id],
+      [id, new Date().toDateString()],
     );
 
     console.log(results);

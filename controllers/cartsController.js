@@ -5,7 +5,7 @@ const {pool} = require('../config/postgres')
 const addToCart = async (req, res, next) => {
   try {
 
-    const { product_id, price } = req.body
+    const { product_id, quantity, price, variations } = req.body
     const uni = req.user.uni
 
     console.log('uni', uni)
@@ -17,7 +17,7 @@ const addToCart = async (req, res, next) => {
     // || 'zttwtu'
     console.log('current_cart', current_cart)
     if(current_cart){
-      const product = current_cart.carts.find(product => product._id == product_id)
+      const product = current_cart.carts.find(product => product._id == product_id && product.variations == variations)
       console.log('product', product)
       let cart = {}
       if(product){
@@ -34,7 +34,8 @@ const addToCart = async (req, res, next) => {
         current_cart.carts.push({
           _id: product_id,
           price,
-          quantity: 1
+          quantity,
+          variations
         })
         cart = await Cart.findOneAndUpdate(
           {uni: uni},
@@ -55,7 +56,8 @@ const addToCart = async (req, res, next) => {
       const product = {
         _id: product_id,
         price,
-        quantity: 1
+        quantity,
+        variations
       }
       const new_cart = new Cart({
         uni: uni,
@@ -148,7 +150,7 @@ const decreaseQuantity = async (req, res, next) => {
     const carts = current_cart.carts.filter(product => product._id != product_id)
     console.log('carts', carts)
 
-    const updated_cart = {}
+    let updated_cart = {}
     if(product.quantity === 1){
       // updated_cart = {...current_cart, }
       updated_cart = current_cart.carts = []
@@ -156,7 +158,7 @@ const decreaseQuantity = async (req, res, next) => {
       updated_cart = current_cart.carts[current_cart.carts.findIndex(item => item._id = product._id)].quantity --
     }
 
-    console.log('current_cart.carts', current_cart.carts)
+    // console.log('current_cart.carts', current_cart.carts, )
 
     const cart = await Cart.findOneAndUpdate(
       {uni: uni},
@@ -166,9 +168,9 @@ const decreaseQuantity = async (req, res, next) => {
     // await current_cart.save()
 
     if(cart){
-      res.status(200).json({error: false, message: 'One item updated!.'})
+      return res.status(200).json({error: false, message: 'One item updated!.'})
     }else{
-      res.status(400).json({error: true, message: 'Error when decrease quantity'})
+      return res.status(400).json({error: true, message: 'Error when decrease quantity'})
     }
 
 
@@ -200,8 +202,8 @@ const getCart = async (req, res, next) => {
           _id : product._id,
           price: product.price,
           quantity: product.quantity,
-          name: rows[0].name,
-          image: rows[0].image
+          name: rows[0]?.name,
+          image: rows[0]?.image
         }}
       }
     })

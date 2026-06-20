@@ -111,17 +111,17 @@ const createInvoiceMid = async (req, res) => {
     const uni = req.user.uni
 
     const prefix = 'INS'
-    const orders = await pool.query('SELECT invoice_number FROM orders ORDER BY invoice_number desc')
+    const orders = await pool.query('SELECT invoice_number FROM orders WHERE deleted_at is null ORDER BY invoice_number desc')
 
-    console.log('orders', orders.rows, uni, orders.rows[0].invoice_number, orders.rows[0].invoice_number.split('-')[2])
+    console.log('orders', orders.rows, uni, orders.rows[0]?.invoice_number, orders.rows[0]?.invoice_number.split('-')[2])
 
     let inv_number = `${prefix}-${new Date().getFullYear()}`
-    let order = '00000'
+    let order = ''
 
-    if(!orders){
+    if(orders.rows.length == 0){
         order = String(1).padStart(4, '0')
     }else{
-        order = String(parseInt(orders.rows[0].invoice_number.split('-')[2]) + 1).padStart(4, '0')
+        order = String(parseInt(orders.rows[0]?.invoice_number.split('-')[2]) + 1).padStart(4, '0')
     }
 
     inv_number = `${inv_number}-${order}`
@@ -153,7 +153,7 @@ const createInvoiceMid = async (req, res) => {
 
     if(customers){
         products.map((item) => {
-            pool.query('INSERT INTO order_details (order_id, product_id, price, amount, discount, promo_code, admin_fee, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [new_order.rows[0].id, item._id, item.price, item.quantity, 0, "", 0, customers.rows[0].user_id])
+            pool.query('INSERT INTO order_details (order_id, product_id, price, amount, variations, discount, promo_code, admin_fee, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', [new_order.rows[0].id, item._id, item.price, item.quantity, item.variations, 0, "", 0, customers.rows[0].user_id])
         });
 
         // if(!rows){
@@ -195,6 +195,10 @@ const createInvoiceMid = async (req, res) => {
                     .then(async result => {
                         console.log('result', result)
                         if(result.status == 201){
+
+                            const payments = await pool.query('INSERT INTO order_payments (payment_status, order_id, payment_url) VALUES ($1, $2, $3)', ['pending', new_order.rows[0].id, result.data.redirect_url])
+
+                            if(!payments) return res.status(400).json({error: true, message: 'Error when insert payment'})
 
                             const user_cart = await Cart.findOne({uni})
 
@@ -255,28 +259,57 @@ const createInvoiceMid = async (req, res) => {
 const callbackMid = async (req, res) => {
 
     try {
-        const {order_id, gross_amount, bank, status_code, transaction_status, transaction_date, payment_type } = req.body
+        const {order_id, gross_amount, bank, status_code, transaction_status, transaction_time, payment_type } = req.body
 
         console.log(req.body)
 
         if(order_id){
             try {
 
-                const callbacks = await pool.query('INSERT INTO payment_logs (api, headers, body, order_id, result) VALUES ($1, $2, $3, $4, $5)', [req.headers.host, req.headers, req.body, order_id, 'ok'])
+                const callbacks = await pool.query('INSERT INTO payment_logs (api, headers, body, order_id, result) VALUES ($1, $2, $3, $4, $5)', [req.headers.host, req.headers, req.body, order_id, transaction_status])
 
-                if(!callbacks) return res.status(400).json({error: true, message: 'Error when handle callback'})
+                if(!callbacks.rows) return res.status(400).json({error: true, message: 'Error when handle callback'})
+
+                let order_status = ""
+
+                // switch (order_status) {
+                //     case 'settlement':
+
+                //         break;
+
+                //     default:
+                //         break;
+                // }
+
+                if(transaction_status == 'settlement')
+                    order_status = 'successed'
+                if(transaction_status == 'failed')
+                    order_status = 'failed'
+                if(transaction_status == 'pending')
+                    order_status == 'pending'
+                if(transaction_status == 'canceled')
+                    order_status == 'canceled'
 
 
-                const {rows} = await pool.query(`UPDATE orders SET order_status = 'successed' WHERE id = $1 AND total_amount = $2`, [order_id, gross_amount])
+                const {rows} = await pool.query(`UPDATE orders SET order_status = $1 WHERE invoice_number = $2 AND total_amount = $3 and deleted_at is null`, [order_status, order_id, parseInt(gross_amount)])
 
-                if(!rows) return res.status(400).json({error: true, message: 'Error when update order: ' + error})
+                if(!rows){
+                    return res.status(400).json({error: true, message: "Error when update order: " + error})
+                }
 
-                const payments = await pool.query('INSERT INTO order_payments (payment_code, payment_status, status_code, settlement_date, order_id) VALUES ($1, $2, $3, $4, $5)', [payment_type, transaction_status, status_code, transaction_date, order_id])
+                const order = await pool.query('SELECT * FROM orders WHERE invoice_number = $1 AND deleted_at is null', [order_id])
+
+                console.log('order', order)
+
+                // if(!rows) return res.status(400).json({error: true, message: 'Error when update order: ' + error})
+
+
+                const payments = await pool.query('UPDATE order_payments SET payment_code = $1, payment_status = $2, status_code = $3, settlement_date = $4, updated_at = $5 WHERE order_id = $6 AND deleted_at is null', [payment_type, transaction_status, status_code, transaction_time, new Date().toDateString(), order.rows[0].id])
 
                 if(!payments) return res.status(400).json({error: true, message: 'Error when update payment'})
 
                 if(bank){
-                    const {rows} = await pool.query(`INSERT INTO order_payments (bank_code, updated_at) VALUES ($1, $2)`, [bank, new Date().toDateString()])
+                    const {rows} = await pool.query(`UPDATE order_payments SET bank_code = $1, updated_at = $2 WHERE order_id = $3`, [bank, new Date().toDateString()], order.rows[0].id)
 
                     if(rows){
                         return res.status(200).json({error: false, message: 'Successfully save callback'})

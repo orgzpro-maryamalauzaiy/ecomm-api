@@ -19,7 +19,7 @@ const getCustomers = async (req, res) => {
 
 const getCustomerById = async (req, res) => {
   try {
-    const {id } = req.params.id
+    const {id } = req.params
 
     console.log('id', id)
 
@@ -29,10 +29,47 @@ const getCustomerById = async (req, res) => {
       return res.status(400).json({error: true, message: 'Customers empty.'})
     }
 
-    res.status(200).json({error: false, message: 'Successfully get customers', data: rows})
+    res.status(200).json({error: false, message: 'Successfully get customers', data: rows[0]})
 
   } catch (error) {
     return res.status(400).json({error: true, message: 'Error when get customers: ' + error})
+  }
+}
+
+const updateCustomer = async (req, res) => {
+  try {
+
+    const {id} = req.params
+
+    const {full_name, phone_number, email} = req.body
+
+    const {rows} = await pool.query(`UPDATE customers SET full_name = $2, phone_number = $3, email = $4, updated_at = $5 WHERE id = $1`, [id, full_name, phone_number, email, new Date().toDateString()])
+
+    if(!rows){
+      return res.status(400).json({error: true, message: "Error when update customer:" + error})
+    }
+
+    return res.status(200).json({error: false, message: "Successfully update customer"})
+
+
+  } catch (error) {
+
+    return res.status(500).json({error: true, message: 'Error when update customer:' + error})
+
+  }
+}
+
+const deleteCustomer = async (req, res) => {
+  try {
+
+    const {id} = req.params
+
+    const {rows} = await pool.query(`UPDATE customers SET deleted_at = $2 WHERE id = $1`, [new Date().toDateString(), id])
+
+    res.status(200).json({error: false, message: 'Successfully delete customer'})
+
+  } catch (error) {
+    return res.status(500).json({error: true, message: "Error when delete customer:" + error})
   }
 }
 
@@ -178,4 +215,4 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-module.exports = { getCustomers, getCustomerById, getProfile, updateProfile }
+module.exports = { getCustomers, getCustomerById, updateCustomer, deleteCustomer, getProfile, updateProfile }
