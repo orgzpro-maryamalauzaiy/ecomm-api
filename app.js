@@ -42,14 +42,16 @@ const allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http:
 //   res.setHeader("Access-Control-Allow-Origin", origin);
 // }
 
+// (origin, callback) => {
+//     if(allowedOrigins.indexOf(origin != -1 || !origin)){
+//       callback(null, true)
+//     }else{
+//       callback(new Error('Not allowed by CORS'))
+//     }
+//   }
+
 const corsOptions = {
-  origin: (origin, callback) => {
-    if(allowedOrigins.indexOf(origin != -1 || !origin)){
-      callback(null, true)
-    }else{
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+  origin: 'https://eshop-vini-sweethome.vercel.app',
   optionsSuccessStatus: 200,
   credentials: true
 };
