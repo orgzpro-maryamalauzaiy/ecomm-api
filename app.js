@@ -85,46 +85,46 @@ app.set('view engine', 'ejs')
 // })
 
 // Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, 'public/uploads/');
+//   },
+//   filename: (req, file, cb) => {
+//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+//     cb(null, uniqueSuffix + path.extname(file.originalname));
+//   }
+// });
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif|webp/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+// const upload = multer({
+//   storage: storage,
+//   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+//   fileFilter: (req, file, cb) => {
+//     const filetypes = /jpeg|jpg|png|gif|webp/;
+//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+//     const mimetype = filetypes.test(file.mimetype);
 
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed!'));
-    }
-  }
-});
+//     if (mimetype && extname) {
+//       return cb(null, true);
+//     } else {
+//       cb(new Error('Only image files are allowed!'));
+//     }
+//   }
+// });
 
 // Authentication page (Login & Register)
-app.get('/auth', (req, res) => {
-  if (req.user) {
-    return res.redirect('/products');
-  }
+// app.get('/auth', (req, res) => {
+//   if (req.user) {
+//     return res.redirect('/products');
+//   }
 
-  res.render('auth/index', {
-    title: 'Login / Register',
-    error: req.query.error || null,
-    success: req.query.success || null,
-    formData: {},
-    isLogin: true
-  });
-})
+//   res.render('auth/index', {
+//     title: 'Login / Register',
+//     error: req.query.error || null,
+//     success: req.query.success || null,
+//     formData: {},
+//     isLogin: true
+//   });
+// })
 
 // Login process
 // app.post('/login', async (req, res) => {
@@ -479,10 +479,10 @@ app.get('/', async (req, res) => {
   res.send("Hello from ecomm API")
 })
 
-app.get('/test', async (req, res) => {
-  const result = await pool.query("SELECT current_database()")
-  res.send("database: " + result.rows[0].current_database)
-})
+// app.get('/test', async (req, res) => {
+//   const result = await pool.query("SELECT current_database()")
+//   res.send("database: " + result.rows[0].current_database)
+// })
 
 // app.use('/owners', ownersRouter)
 // app.use('/users', usersRouter)
