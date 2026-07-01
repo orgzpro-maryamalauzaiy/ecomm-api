@@ -5,7 +5,7 @@ const flash = require('connect-flash')
 const multer = require('multer')
 const cors = require('cors')
 
-const pool = require('./config/postgres.js')
+const { pool } = require('./config/postgres.js')
 const dotenv = require('dotenv')
 dotenv.config()
 
