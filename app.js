@@ -63,14 +63,14 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(cors(corsOptions))
-app.use(expressSession({
-    resave: false,
-    saveUninitialized: false,
-    secret: process.env.EXPRESS_SESSION_SECRET
-}))
-app.use(flash())
+// app.use(expressSession({
+//     resave: false,
+//     saveUninitialized: false,
+//     secret: process.env.EXPRESS_SESSION_SECRET
+// }))
+// app.use(flash())
 app.use(express.static(path.join(__dirname, 'public')))
-app.set('view engine', 'ejs')
+// app.set('view engine', 'ejs')
 
 // app.use(layout)
 // app.use('layout', 'layouts/main')
@@ -506,8 +506,8 @@ app.get('/', async (req, res) => {
 
 // app.use('/histories', historyOrdersRouter)
 
-app.get('/accounts/profile', verifyToken, getProfile)
-app.patch('/accouts/profile', verifyToken, updateProfile)
+// app.get('/accounts/profile', verifyToken, getProfile)
+// app.patch('/accouts/profile', verifyToken, updateProfile)
 
 app.use((err, req, res, next) => {
     const errStatus = err.status || 500
