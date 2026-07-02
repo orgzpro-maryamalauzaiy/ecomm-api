@@ -1,5 +1,5 @@
 const express = require('express')
-const { createCoupon, updateCoupon, getCoupons, getCouponById } = require('../controllers/CouponsController')
+const { createCoupon, updateCoupon, getCoupons, getCouponById } = require('../controllers/couponsController')
 const { verifyAdmin } = require('../utils/verifyToken')
 
 const router = express.Router()
