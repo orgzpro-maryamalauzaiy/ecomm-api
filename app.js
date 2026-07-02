@@ -510,12 +510,12 @@ app.get('/', async (req, res) => {
 // app.get('/accounts/profile', verifyToken, getProfile)
 // app.patch('/accouts/profile', verifyToken, updateProfile)
 
-app.use((err, req, res, next) => {
-    const errStatus = err.status || 500
-    const errMessage = err.message || "Server error"
+// app.use((err, req, res, next) => {
+//     const errStatus = err.status || 500
+//     const errMessage = err.message || "Server error"
 
-    return res.status(500).json({error: errStatus, message: errMessage, errorStack : err.stack})
-})
+//     return res.status(500).json({error: errStatus, message: errMessage, errorStack : err.stack})
+// })
 
 const PORT = process.env.PORT || 3030
 
