@@ -44,9 +44,17 @@ const registUser = async (req, res) => {
                             // const uni = [...Array[5]].forEach(value => {return {}})
                             const user = await pool.query('UPDATE users SET account_id = $1, uni = $2, updated_at = $3 WHERE email = $4', [account_id, uni, new Date().toDateString(), email])
 
-                            // const user = {}
-                            const token = generateToken({email: email, uni: uni })
-                            res.cookie("token", token, {maxAge: 24 * 60})
+                            const credential = {
+                                full_name, email, uni, user_type: 'customer'
+                            }
+                            const token = generateToken(credential)
+
+                            res.cookie("token", token, {
+                                httpOnly: true,
+                                secure: true
+                            })
+                            // maxAge: 24 * 60
+
                             res.status(200).json({error: false, message: "Successfully registered"})
 
                         }
@@ -99,7 +107,7 @@ const loginUser = async (req, res) => {
     console.log('username', username)
 
     try {
-        const {rows} = await pool.query("SELECT full_name, email, uni, is_admin, password FROM users WHERE email = $1 AND deleted_at is null", [username])
+        const {rows} = await pool.query("SELECT full_name, email, uni, is_admin, user_type, password FROM users WHERE email = $1 AND deleted_at is null", [username])
         // const user = await userModel.findOne({email: email})
         console.log('rows', rows)
         if(!rows[0]){
@@ -110,7 +118,7 @@ const loginUser = async (req, res) => {
             full_name: rows[0].full_name,
             email: rows[0].email,
             uni: rows[0].uni,
-            is_admin: rows[0].is_admin
+            user_type: rows[0].user_type
         }
 
         const is_match = await bcrypt.compare(password, rows[0].password)

@@ -34,7 +34,6 @@ const db = require('./config/mongoose-connection')
 const { getProfile, updateProfile } = require('./controllers/customersController.js')
 const { verifyToken } = require('./utils/verifyToken.js')
 
-// ✅ CORS Configuration
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
@@ -47,7 +46,6 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
     if (allowedOrigins.indexOf(origin) !== -1) {
@@ -60,19 +58,19 @@ const corsOptions = {
   credentials: true
 };
 
-// ✅ Middleware
+// Middleware
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(cors(corsOptions))
 app.use(express.static(path.join(__dirname, 'public')))
 
-// ✅ Health Check Route
+// Health Check Route
 app.get('/', async (req, res) => {
   res.send("Hello from ecomm API")
 })
 
-// ✅ Test Database Route (with error handling)
+// Test Database Route (with error handling)
 app.get('/test', async (req, res) => {
   try {
     const result = await pool.query("SELECT current_database()")
@@ -83,7 +81,7 @@ app.get('/test', async (req, res) => {
   }
 })
 
-// ✅ All Routes - UNCOMMENT these if you need them
+// Routes
 app.use('/owners', ownersRouter)
 app.use('/users', usersRouter)
 app.use('/products', productsRouter)
@@ -106,7 +104,7 @@ app.use('/histories', historyOrdersRouter)
 app.get('/accounts/profile', verifyToken, getProfile)
 app.patch('/accounts/profile', verifyToken, updateProfile) // Fixed typo: 'accouts' -> 'accounts'
 
-// ✅ Global Error Handler
+// Global Error Handler
 app.use((err, req, res, next) => {
   console.error('Error:', err)
   const errStatus = err.status || 500
@@ -119,10 +117,10 @@ app.use((err, req, res, next) => {
   })
 })
 
-// ✅ FOR VERCEL: Export the app (DO NOT use app.listen)
+// FOR VERCEL: Export the app
 module.exports = app
 
-// ✅ FOR LOCAL DEVELOPMENT: Only listen when running directly
+// FOR LOCAL DEVELOPMENT: Only listen when running directly
 if (require.main === module) {
   const PORT = process.env.PORT || 3030
   app.listen(PORT, () => {
