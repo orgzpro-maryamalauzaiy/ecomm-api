@@ -1,4 +1,4 @@
-const {pool} = require('../config/postgres')
+const pool = require('../config/postgres')
 const axios = require('axios')
 const Cart = require('../models/cart')
 
@@ -111,13 +111,15 @@ const createInvoiceMid = async (req, res) => {
 
     const uni = customer_details.uni != ""? customer_details.uni : req.user?.uni
 
+    let customer
+
     if(req.user?.uni){
         customer = await pool.query('SELECT u.id, c.email,c.full_name,c.phone_number FROM customers c LEFT JOIN users u ON u.account_id = c.id WHERE uni = $1 AND u.deleted_at is null', [uni])
     }else{
         await pool.query(`INSERT INTO customers (full_name, email, phone_number, cust_uni, is_admin, address, city_id, zip, country, province)
                                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, [customer_details.full_name, customer_details.email, customer_details.phone_number, customer_details.uni, false, customer_details.address, customer_details.city_id, customer_details.zip, customer_details.country, customer_details.province])
 
-        customer = await pool.query(`SELECT id FROM customers WHERE cust_uni = $1`, [customer_details.uni])
+        customer = await pool.query(`SELECT id FROM customers WHERE cust_uni = $1`, [customer_details.uni])``
     }
 
 
@@ -161,8 +163,8 @@ const createInvoiceMid = async (req, res) => {
     // const users = await pool.query('SELECT id FROM users WHERE uni = $1', [uni])
 
     if(customer){
-        products.map((item) => {
-            pool.query('INSERT INTO order_details (order_id, product_id, price, amount, variations, discount, promo_code, admin_fee, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', [new_order.rows[0].id, item._id, item.price, item.quantity, item.variations, 0, "", 0, customer.rows[0].id])
+        products.map(async (item) => {
+            await pool.query('INSERT INTO order_details (order_id, product_id, price, amount, variations, discount, promo_code, admin_fee, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', [new_order.rows[0].id, item._id, item.price, item.quantity, item.variations, 0, "", 0, customer.rows[0].id])
         });
 
         // if(!rows){
@@ -205,9 +207,9 @@ const createInvoiceMid = async (req, res) => {
                         console.log('result', result)
                         if(result.status == 201){
 
-                            const payments = await pool.query('INSERT INTO order_payments (payment_status, order_id, payment_url) VALUES ($1, $2, $3)', ['pending', new_order.rows[0].id, result.data.redirect_url])
+                            // const payments = await pool.query('INSERT INTO order_payments (payment_status, order_id, payment_url) VALUES ($1, $2, $3)', ['pending', new_order.rows[0].id, result.data.redirect_url])
 
-                            if(!payments) return res.status(400).json({error: true, message: 'Error when insert payment'})
+                            // if(!payments) return res.status(400).json({error: true, message: 'Error when insert payment'})
 
                             const user_cart = await Cart.findOne({uni})
 
@@ -263,7 +265,7 @@ const createInvoiceMid = async (req, res) => {
 
 
   } catch (error) {
-    return res.status(500).json({error: 'Error when create invoice ' + error})
+    return res.status(500).json({error: 'Error when create invoice: ' + error})
   }
 }
 

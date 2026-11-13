@@ -1,17 +1,17 @@
 const express = require('express')
 const user = require('../models/user')
 const { getCart, addToCart, increaseQuantity, decreaseQuantity, removeCart, removeFromCart } = require('../controllers/cartsController')
-const { verifyUser } = require('../utils/verifyToken')
+const { verifyUser, verifyAllUser } = require('../utils/verifyToken')
 
 
 const router = express.Router()
 
 router.get('/', getCart)
 router.post('/add', addToCart)
-router.post('/remove', verifyUser, removeFromCart)
-router.delete('/reset', verifyUser, removeCart)
-router.post('/increase', verifyUser, increaseQuantity)
-router.post('/decrease', verifyUser, decreaseQuantity)
+router.post('/remove', verifyAllUser, removeFromCart)
+router.delete('/reset', verifyAllUser, removeCart)
+router.post('/increase', verifyAllUser, increaseQuantity)
+router.post('/decrease', verifyAllUser, decreaseQuantity)
 
 // router.post('/add/:productId', async (req, res) => {
 //     // const user = await user.find({username: req.user.username})

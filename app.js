@@ -5,7 +5,7 @@ const flash = require('connect-flash')
 const multer = require('multer')
 const cors = require('cors')
 
-const { pool } = require('./config/postgres.js')
+const pool = require('./config/postgres.js')
 const dotenv = require('dotenv')
 dotenv.config()
 
@@ -67,7 +67,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 // Health Check Route
 app.get('/', async (req, res) => {
-  res.send("Hello from ecomm API")
+  res.send("Hello from ecommerce API")
 })
 
 // Test Database Route (with error handling)
@@ -96,15 +96,14 @@ app.use('/coupons', couponsRouter)
 app.use('/customers', customersRouter)
 app.use('/categories', categoriesRouter)
 app.use('/order-reports', orderReportsRouter)
-app.use('/balance', balanceRouter)
+app.use('/balances', balanceRouter)
 app.use('/search', searchRouter)
 app.use('/cities', citiesRouter)
-app.use('/histories', historyOrdersRouter)
 
 app.get('/accounts/profile', verifyToken, getProfile)
-app.patch('/accounts/profile', verifyToken, updateProfile) // Fixed typo: 'accouts' -> 'accounts'
+app.patch('/accounts/profile', verifyToken, updateProfile)
 
-// Global Error Handler
+// Global error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err)
   const errStatus = err.status || 500
@@ -117,10 +116,9 @@ app.use((err, req, res, next) => {
   })
 })
 
-// FOR VERCEL: Export the app
+
 module.exports = app
 
-// FOR LOCAL DEVELOPMENT: Only listen when running directly
 if (require.main === module) {
   const PORT = process.env.PORT || 3030
   app.listen(PORT, () => {

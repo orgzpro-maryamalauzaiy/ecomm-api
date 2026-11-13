@@ -31,6 +31,25 @@ const verifyUser = (req, res, next) => {
   })
 }
 
+const verifyAllUser = (req, res, next) => {
+
+  if(req.body?.cust_uni){
+
+    next()
+
+  }else if(!req.body?.cust_uni){
+    verifyToken(req, res, next, () => {
+      if(req.user?.uni !== req.params?.uni || req.user.user_type === 'admin'){
+        next()
+      }
+    })
+  }
+  else{
+    res.status(400).json({error: true, message: 'You are not authorized'})
+  }
+
+}
+
 const verifyAdmin = (req, res, next) => {
   verifyToken(req, res, next, () => {
     if(req.user.user_type === 'admin'){
@@ -41,4 +60,4 @@ const verifyAdmin = (req, res, next) => {
   })
 }
 
-module.exports = {verifyToken, verifyUser, verifyAdmin}
+module.exports = {verifyToken, verifyUser, verifyAllUser, verifyAdmin}

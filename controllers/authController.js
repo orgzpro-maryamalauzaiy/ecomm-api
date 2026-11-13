@@ -1,7 +1,7 @@
 // import userModel from '../models/user.js'
 // import { generateToken } from '../utils/generateToken.js'
 const bcrypt = require('bcrypt')
-const {pool} = require('../config/postgres.js')
+const pool = require('../config/postgres.js')
 const { generateToken } = require('../utils/generateToken.js')
 const { TokenExpiredError } = require('jsonwebtoken')
 
@@ -138,7 +138,7 @@ const loginUser = async (req, res) => {
             full_name: rows[0].full_name,
             email: rows[0].email,
             uni: rows[0].uni,
-            is_admin: rows[0].is_admin,
+            user_type: rows[0].user_type,
             token: token
         }
         res.status(200).json({error: false, message: 'Successfuly logged in', data})

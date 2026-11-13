@@ -9,7 +9,7 @@ const {createProduct, getProducts, getProductsNewArrivals, getProductsBestSeller
 
 const { verifyAdmin } = require('../utils/verifyToken.js')
 
-router.post('/', verifyAdmin, upload.single('image'), createProduct)
+router.post('/', upload.single('image'), createProduct)
 router.get('/', getProducts)
 router.get('/new-arrivals', getProductsNewArrivals)
 router.get('/best-sellers', getProductsBestSellers)

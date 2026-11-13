@@ -1,6 +1,6 @@
 const Cart = require("../models/cart")
 const db = require('../config/mongoose-connection')
-const {pool} = require('../config/postgres')
+const pool = require('../config/postgres')
 const { generateRandomString } = require("../utils/generateRandomString")
 
 const addToCart = async (req, res, next) => {
@@ -94,8 +94,8 @@ const addToCart = async (req, res, next) => {
 const increaseQuantity = async (req, res, next) => {
   try {
 
-    const { product_id } = req.body
-    const uni = req.user.uni
+    const { product_id, cust_uni } = req.body
+    const uni = req.user?.uni || cust_uni
 
     console.log('uni', uni)
 
@@ -122,12 +122,14 @@ const increaseQuantity = async (req, res, next) => {
       {$set: current_cart},
       {returnDocument: 'after'}
     )
+
+    console.log(cart)
     // await current_cart.save()
 
     if(cart){
-      res.status(200).json({error: false, message: 'One item added!.'})
+      return res.status(200).json({error: false, message: 'One item added!.'})
     }else{
-      res.status(400).json({error: true, message: 'Error when increase quantity'})
+      return res.status(400).json({error: true, message: 'Error when increase quantity'})
     }
 
 
@@ -139,8 +141,8 @@ const increaseQuantity = async (req, res, next) => {
 const decreaseQuantity = async (req, res, next) => {
   try {
 
-    const { product_id } = req.body
-    const uni = req.user.uni
+    const { product_id, cust_uni } = req.body
+    const uni = req.user?.uni || cust_uni
 
     console.log('uni', uni)
 
@@ -240,9 +242,9 @@ const getCart = async (req, res, next) => {
 
 const removeFromCart = async (req, res, next) => {
   try {
-    const {product_id} = req.body
+    const {product_id, cust_uni} = req.body
 
-    const uni = req.user.uni
+    const uni = req.user?.uni || cust_uni
     const current_cart = await Cart.find({uni: uni})
     if(current_cart){
       console.log('current_cart', current_cart[0].carts)
@@ -283,9 +285,9 @@ const removeFromCart = async (req, res, next) => {
 
 const removeCart = async (req, res, next) => {
   try {
-    // const {products} = req.body
+    const {cust_uni} = req.body
 
-    const uni = req.user.uni
+    const uni = req.user?.uni || cust_uni
     const current_cart = await Cart.findOneAndDelete({uni: uni})
 
     res.status(200).json({error: false, message: 'Successfully remove cart'})

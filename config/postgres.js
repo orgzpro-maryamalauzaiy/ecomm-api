@@ -17,34 +17,56 @@ const ca_fileName = "../ca-cert-postgres-database/ca.pem"
 const ca_filePath = path.join(__dirname, ca_fileName)
 
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_DATABASE,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: {
-    rejectUnauthorized: true,
-    ca: fs.readFileSync(ca_filePath, function(error, data) {
-      if(error){
-        console.log(error)
-        return
-      }
-
-      return data.toString()
-    })
-    // ca: fs.readFileSync('./ca-cert-postgres-database/ca.pem', function(error, data) {
-    //   if(error){
-    //     console.log(error)
-    //     return
-    //   }
-
-    //   return data.toString()
-    // })
-    // ca: fs.readFileSync('../ca-cert-postgres-database/ca.pem').toString()
-  }
+  user: process.env.PGUSER,
+  host: process.env.PGHOST,
+  database: process.env.PGDATABASE,
+  password: process.env.PGPASSWORD,
+  // port: process.env.DB_PORT,
+  ssl: process.env.PGSSLMODE === 'require'? true : false,
 })
 
-module.exports = {pool}
+// ---- connection for aiven database
+
+// const pool = new Pool({
+//   user: process.env.DB_USER,
+//   host: process.env.DB_HOST,
+//   database: process.env.DB_DATABASE,
+//   password: process.env.DB_PASSWORD,
+//   port: process.env.DB_PORT,
+//   ssl: {
+//     rejectUnauthorized: true,
+//     ca: fs.readFileSync(ca_filePath, function(error, data) {
+//       if(error){
+//         console.log(error)
+//         return
+//       }
+
+//       return data.toString()
+//     })
+//     // ca: fs.readFileSync('./ca-cert-postgres-database/ca.pem', function(error, data) {
+//     //   if(error){
+//     //     console.log(error)
+//     //     return
+//     //   }
+
+//     //   return data.toString()
+//     // })
+//     // ca: fs.readFileSync('../ca-cert-postgres-database/ca.pem').toString()
+//   }
+// })
+
+// --- connection for local database
+
+// const pool = new Pool({
+//   user: process.env.DB_USER,
+//   host: process.env.DB_HOST,
+//   database: process.env.DB_DATABASE,
+//   password: process.env.DB_PASSWORD,
+//   port: process.env.DB_PORT,
+//   ssl: false
+// })
+
+module.exports = pool
 
 // pool.on('connect', () => {
 //   console.log('Connection pool established with Database')

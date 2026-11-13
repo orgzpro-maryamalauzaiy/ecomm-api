@@ -1,5 +1,5 @@
-const {pool} = require('../config/postgres.js')
-const { idString, generateSlug } = require('../utils/generateSlug.js')
+const pool = require('../config/postgres.js')
+const { generateSlug } = require('../utils/generateSlug.js')
 const {handleUpload} = require("../utils/handleUpload.js")
 
 const createProduct = async (req, res, next) => {
@@ -8,10 +8,10 @@ const createProduct = async (req, res, next) => {
 
     console.log('body', req)
 
-    const { image, name, description, price, original_price, discount, bg_color, panel_color, text_color, stock, category_id, sku, variations } = req.body
+    const { image, name, description, price, original_price, discount, pin_product, bg_color, panel_color, text_color, category_id, sku, variations } = req.body
     // const { image } = req.body
 
-    console.log('file',  req.file, req.file.buffer, req.file.mimetype)
+    // console.log('file',  req.file, req.file.buffer, req.file.mimetype)
     // image, image.buffer,
 
     const b64 = Buffer.from(req.file.buffer).toString("base64");
@@ -19,27 +19,29 @@ const createProduct = async (req, res, next) => {
     let dataURI = "data:" + req.file.mimetype + ";base64," + b64;
     // req.file
     const response = await handleUpload(dataURI);
-    // console.log(cldRes)
+    console.log(response.url)
     // res.json(cldRes);
 
-    // const slug = generateSlug(name)
+    const slug = generateSlug(name)
 
-    const results = await pool.query(`INSERT INTO products (image, name, description, price, original_price, discount, bg_color, panel_color, text_color, stock, category_id, sku)
-                            VALUES ( $1, $2, $3 , $4, $5 , $6, $7 , $8, $9 , $10, $11 , $12)
-      `, [response.url, name, description, price, original_price, discount, bg_color, panel_color, text_color, stock, category_id, sku])
+    console.log('slug', slug)
 
-    console.log(results.rows[0])
+    const results = await pool.query(`INSERT INTO products (image, name, slug, description, price, original_price, discount, pin_product, bg_color, panel_color, text_color, category_id, sku)
+                            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      `, [response.url, name, slug, description, price, original_price, discount, pin_product, bg_color, panel_color, text_color, category_id, sku])
+
+    console.log('product', results.rows[0])
 
     if(!results) return res.status(400).json({error: true, message: 'Error when insert product'})
 
     const inserted_product = await pool.query(`SELECT id FROM products WHERE slug = $1 AND deleted_at is null`, [slug])
 
-    if(!inserted_product){
+    if(!inserted_product.rows){
       return res.status(400).json({error: true, message: 'Error when save product'})
     }
 
     console.log('variations', JSON.parse(variations))
-    console.log('product', inserted_product)
+    console.log('product', inserted_product.rows)
 
     const pVariations = JSON.parse(variations)
 
@@ -100,10 +102,16 @@ const getProducts = async (req, res, next) => {
         // query.concat(query + 'AND $' + fields.length + 1)
         fields.push(max_price)
       }
-      if(sort_by){
+      if(sort_by == 'discount'){
+
+        query += ` AND discount > 0`
+        // query.concat(query + 'AND $' + fields.length + 1)
+        // fields.push(sort_by)
+
+      }else{
         query += ` AND pin_product = $${fields.length + 1}`
         // query.concat(query + 'AND $' + fields.length + 1)
-        fields.push(max_price)
+        fields.push(sort_by)
       }
     }
     // if(color){
@@ -283,7 +291,7 @@ const getProductById = async (req, res, next) => {
   try {
     const {id} = req.params
 
-    const { rows } = await pool.query(`SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.deleted_at is null AND c.deleted_at is null AND p.id = $1`, [id])
+    const { rows } = await pool.query(`SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON c.id = p.category_id WHERE p.deleted_at is null AND c.deleted_at is null AND (p.id = $1 OR slug = $2)`, [id, id])
 
     console.log('rows', rows, id)
 
@@ -339,7 +347,7 @@ const updateProduct = async (req, res, next) => {
 
     console.log('image', image)
 
-    const slug = idString(name)
+    const slug = generateSlug(name)
 
     const results = await pool.query(`UPDATE products SET image = $1, name = $2, slug = $3, description = $4, price = $5, original_price = $6, discount = $7, bg_color = $8, panel_color = $9, text_color = $10, stock = $11, category = $12, sku = $13
                                       WHERE id = $16
