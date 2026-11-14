@@ -165,19 +165,19 @@ const decreaseQuantity = async (req, res, next) => {
     const carts = current_cart.carts.filter(product => product._id != product_id)
     console.log('carts', carts)
 
-    let updated_cart = {}
+    // let updated_cart = {}
     if(product.quantity === 1){
       // updated_cart = {...current_cart, }
-      updated_cart = current_cart.carts = []
+      current_cart.carts = []
     }else{
-      updated_cart = current_cart.carts[current_cart.carts.findIndex(item => item._id = product._id)].quantity --
+      current_cart.carts[current_cart.carts.findIndex(item => item._id = product._id)].quantity --
     }
 
-    // console.log('current_cart.carts', current_cart.carts, )
+    console.log('current_cart.carts', current_cart.carts )
 
     const cart = await Cart.findOneAndUpdate(
       {uni: uni},
-      {$set: updated_cart},
+      {$set: current_cart},
       {returnDocument: 'after'}
     )
     // await current_cart.save()
