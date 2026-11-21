@@ -286,6 +286,29 @@ const getProductsSpecialOffers = async (req, res, next) => {
   }
 }
 
+const getRelatedProducts = async (req, res, next) => {
+
+  try {
+
+    const { product_id } = req.params
+
+    const product = await pool.query(`SELECT category_id, sku FROM products WHERE (id = $1) and deleted_at is null`, [product_id])
+
+    if(product.rows.length == 0){
+      return res.status(200).json({error: false, message: 'Product not found'})
+    }
+
+    const { rows } = await pool.query(`SELECT id, name, thumbnail, price, original_price, description FROM products WHERE (category_id=$1 OR sku ilike '$2%') AND deleted_at is null ORDER BY created_at desc limit 4`, [category_id, sku])
+
+    res.status(200).json({error: false, message: 'Successfully get product', data: rows})
+
+
+
+  } catch (error) {
+    next(error)
+  }
+}
+
 const getProductById = async (req, res, next) => {
 
   try {
@@ -397,4 +420,4 @@ const deleteProduct = async (req, res, next) => {
 }
 
 
-module.exports = {createProduct, getProducts, getProductById, updateProduct, deleteProduct,  getProductsNewArrivals, getProductsBestSellers, getProductsSpecialOffers}
+module.exports = {createProduct, getProducts, getProductById, updateProduct, deleteProduct, getProductsNewArrivals, getProductsBestSellers, getProductsSpecialOffers, getRelatedProducts}

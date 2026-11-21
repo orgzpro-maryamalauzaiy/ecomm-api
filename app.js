@@ -28,6 +28,7 @@ const orderReportsRouter = require('./routes/orderReportRouter.js')
 const searchRouter = require('./routes/customersRouter.js')
 const citiesRouter = require('./routes/citiesRouter.js')
 const couponsRouter = require('./routes/couponsRouter.js')
+const shippingRouter = require('./routes/shippingRouter.js')
 
 const db = require('./config/mongoose-connection')
 
@@ -37,6 +38,7 @@ const { verifyToken } = require('./utils/verifyToken.js')
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:3002',
   'http://localhost:5173',
   'http://localhost:5175',
   'https://7228-157-10-184-115.ngrok-free.app',
@@ -99,6 +101,7 @@ app.use('/order-reports', orderReportsRouter)
 app.use('/balances', balanceRouter)
 app.use('/search', searchRouter)
 app.use('/cities', citiesRouter)
+app.use('/shippings', shippingRouter)
 
 app.get('/accounts/profile', verifyToken, getProfile)
 app.patch('/accounts/profile', verifyToken, updateProfile)

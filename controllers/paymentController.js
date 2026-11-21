@@ -1,4 +1,4 @@
-const pool = require('../config/postgres')
+const pool = require('../config/postgres.js')
 const axios = require('axios')
 const Cart = require('../models/cart')
 
@@ -111,16 +111,19 @@ const createInvoiceMid = async (req, res) => {
 
     const uni = customer_details.uni != ""? customer_details.uni : req.user?.uni
 
-    let customer
+    // let customer = []
 
-    if(req.user?.uni){
-        customer = await pool.query('SELECT u.id, c.email,c.full_name,c.phone_number FROM customers c LEFT JOIN users u ON u.account_id = c.id WHERE uni = $1 AND u.deleted_at is null', [uni])
-    }else{
+    customer_from_uni = await pool.query('SELECT u.id, c.email,c.full_name,c.phone_number FROM customers c LEFT JOIN users u ON u.account_id = c.id WHERE uni = $1 AND u.deleted_at is null', [uni])
+
+    if (customer_details.uni != ""){
         await pool.query(`INSERT INTO customers (full_name, email, phone_number, cust_uni, is_admin, address, city_id, zip, country, province)
                                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, [customer_details.full_name, customer_details.email, customer_details.phone_number, customer_details.uni, false, customer_details.address, customer_details.city_id, customer_details.zip, customer_details.country, customer_details.province])
 
-        customer = await pool.query(`SELECT id FROM customers WHERE cust_uni = $1`, [customer_details.uni])``
     }
+
+    customer_no_uni  = await pool.query(`SELECT id, full_name, email, phone_number FROM customers WHERE cust_uni = $1`, [uni])
+
+    const customer = req.user?.uni? customer_from_uni.rows[0] : customer_no_uni.rows[0]
 
 
     const prefix = 'INS'
@@ -143,15 +146,15 @@ const createInvoiceMid = async (req, res) => {
 
     console.log('customers', customer)
 
-    const {rows} = await pool.query('INSERT INTO orders (invoice_number, total_price, total_amount, total_discount, admin_fee, promo_code, order_status, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        [inv_number, total_price, total_amount, total_discount, admin_fee, promo_code, 'pending', customer.rows[0].id]
+    await pool.query('INSERT INTO orders (invoice_number, total_price, total_amount, total_discount, admin_fee, promo_code, order_status, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [inv_number, total_price, total_amount, total_discount, admin_fee, promo_code, 'pending', customer.id]
     )
 
-    console.log('new_order', rows)
+    // console.log('new_order', rows)
 
-    if(!rows){
-        return res.status(400).json({error: true, message: 'Error create order'})
-    }
+    // if(rows){
+    //     return res.status(400).json({error: true, message: 'Error create order'})
+    // }
 
     const new_order = await pool.query('SELECT * FROM orders WHERE invoice_number = $1 AND deleted_at is null', [inv_number])
 
@@ -164,7 +167,7 @@ const createInvoiceMid = async (req, res) => {
 
     if(customer){
         products.map(async (item) => {
-            await pool.query('INSERT INTO order_details (order_id, product_id, price, amount, variations, discount, promo_code, admin_fee, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', [new_order.rows[0].id, item._id, item.price, item.quantity, item.variations, 0, "", 0, customer.rows[0].id])
+            await pool.query('INSERT INTO order_details (order_id, product_id, price, amount, variations, discount, promo_code, admin_fee, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)', [new_order.rows[0].id, item._id, item.price, item.quantity, item.variations, 0, "", 0, customer.id])
         });
 
         // if(!rows){
@@ -195,10 +198,10 @@ const createInvoiceMid = async (req, res) => {
             gross_amount: total_price,
             item_details: product_list,
             customer_details: {
-                first_name: customer.rows[0].full_name,
+                first_name: customer.full_name,
                 last_name: "-",
-                email: customer.rows[0].email,
-                phone: customer.rows[0].phone_number
+                email: customer.email,
+                phone: customer.phone_number
             }
         }}
 
@@ -265,7 +268,7 @@ const createInvoiceMid = async (req, res) => {
 
 
   } catch (error) {
-    return res.status(500).json({error: 'Error when create invoice: ' + error})
+    return res.status(500).json({error: 'Error when create invoice- ' + error})
   }
 }
 
